@@ -1,43 +1,78 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+			contacts: []
 		},
 		actions: {
 			// Use getActions to call a function within a fuction
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
+			getContacts: () => {
+				fetch('https://playground.4geeks.com/apis/fake/contact/agenda/contact_marc')
+					.then(resp => {
+						console.log("is response succesful: " + resp.ok); 
+						console.log("status code: " + resp.status); 
+						return resp.json();
+					})
+					.then(data => {
+						console.log(data); 
+						setStore({ contacts: data })
+						console.log(getStore().contacts)
+					})
+					.catch(error => {
+						console.log(error);
+					});
 			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
+			uploadContact: (objContact) => {
+				fetch(`https://playground.4geeks.com/apis/fake/contact`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(objContact)
+				})
+					.then(response => {
+						console.log("uplaod response: ", response)
+						console.log("uplaod JSON:", response.json())
+						getActions().getContacts()
+					})
+					.catch(error => console.log(error))
+			},
+			editContact: (objContact) => {
+				fetch(`https://playground.4geeks.com/apis/fake/contact/${objContact.id}`, {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(objContact)
+				})
+					.then(response => {
+						console.log("uplaod response: ", response)
+						console.log("uplaod JSON:", response.json())
+						getActions().getContacts()
+					})
+					.catch(error => console.log(error))
+			},
 
-				//reset the global store
-				setStore({ demo: demo });
+			deleteContact: (id) => {
+				console.log("deleteID", id)
+				fetch(`https://playground.4geeks.com/apis/fake/contact/${id}`, {
+					method: "DELETE",
+					headers: {
+						"Content-Type": "application/json"
+					}
+				})
+					.then(response => {
+						console.log("uplaod response: ", response)
+						console.log("uplaod JSON:", response.json())
+						getActions().getContacts()
+					})
+					.catch(error => console.log(error))
 			}
+
+
 		}
 	};
 };
